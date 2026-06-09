@@ -1,0 +1,13 @@
+{
+  "name": "planner-monorepo",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --names \"next,nest\" --prefix-colors \"cyan,green\" \"npm --prefix frontend run dev\" \"npm --prefix backend run start:dev\"",
+    "build": "npm --prefix frontend run build && npm --prefix backend run build",
+    "install:all": "npm --prefix frontend install && npm --prefix backend install"
+  },
+  "devDependencies": {
+    "concurrently": "^9"
+  }
+}
