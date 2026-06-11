@@ -6,22 +6,19 @@ import { apiUpload } from "@/app/lib/api-client";
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB — ให้ตรงกับ limit ฝั่ง backend
 
 export type PoLineItem = {
+  product_code: string | null;
   description: string;
   quantity: number | null;
   unit: string | null;
-  unit_price: number | null;
-  amount: number | null;
 };
 
 export type PoExtraction = {
   po_number: string | null;
   po_date: string | null;
+  due_date: string | null;
+  expiry_date: string | null;
   vendor_name: string | null;
   customer_name: string | null;
-  currency: string | null;
-  subtotal: number | null;
-  vat_amount: number | null;
-  total_amount: number | null;
   notes: string | null;
   line_items: PoLineItem[];
 };
@@ -82,13 +79,6 @@ interface PurchaseOrderResponse {
   sharepoint_url: string;
 }
 
-function numberField(formData: FormData, name: string): number | null {
-  const raw = formData.get(name);
-  if (typeof raw !== "string" || raw.trim() === "") return null;
-  const value = Number(raw);
-  return Number.isFinite(value) ? value : null;
-}
-
 function textField(formData: FormData, name: string): string | null {
   const raw = formData.get(name);
   if (typeof raw !== "string" || raw.trim() === "") return null;
@@ -114,12 +104,10 @@ export async function submitPo(
   const data = {
     po_number: textField(formData, "po_number"),
     po_date: textField(formData, "po_date"),
+    due_date: textField(formData, "due_date"),
+    expiry_date: textField(formData, "expiry_date"),
     vendor_name: textField(formData, "vendor_name"),
     customer_name: textField(formData, "customer_name"),
-    currency: textField(formData, "currency"),
-    subtotal: numberField(formData, "subtotal"),
-    vat_amount: numberField(formData, "vat_amount"),
-    total_amount: numberField(formData, "total_amount"),
     notes: textField(formData, "notes"),
     line_items: lineItems,
   };

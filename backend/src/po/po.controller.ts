@@ -31,6 +31,13 @@ function requirePdf(
   if (!isPdf) {
     throw new BadRequestException('Only PDF files are allowed');
   }
+
+  // Multer/Busboy decodes multipart filename headers as latin1 by default,
+  // so UTF-8 filenames (e.g. Thai) arrive as mojibake. Re-decode to fix it.
+  file.originalname = Buffer.from(file.originalname, 'latin1').toString(
+    'utf8',
+  );
+
   return file;
 }
 

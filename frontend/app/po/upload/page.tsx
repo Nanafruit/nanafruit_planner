@@ -11,8 +11,6 @@ interface PurchaseOrder {
   status: string;
   po_number: string | null;
   vendor_name: string | null;
-  total_amount: number | null;
-  currency: string | null;
   created_at: string;
 }
 
@@ -32,10 +30,8 @@ export default async function PoUploadPage() {
     <div className="flex flex-1 flex-col">
       <Navbar />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
-        <div className="mx-auto max-w-xl">
-          <h1 className="text-lg font-semibold text-zinc-900">
-            อัพโหลดใบ PO
-          </h1>
+        <div className="mx-auto max-w-5xl">
+          <h1 className="text-lg font-semibold text-zinc-900">อัพโหลดใบ PO</h1>
           <p className="mt-1 text-sm text-zinc-500">
             ไฟล์จะถูกเก็บใน SharePoint และบันทึกข้อมูลลงระบบเพื่อนำไปสร้าง BOM
             ต่อไป
@@ -72,8 +68,6 @@ export default async function PoUploadPage() {
                     {(order.po_number || order.vendor_name) && (
                       <span className="block text-xs text-zinc-500">
                         {order.po_number ?? "-"} · {order.vendor_name ?? "-"}
-                        {order.total_amount != null &&
-                          ` · ${order.total_amount.toLocaleString("th-TH")} ${order.currency ?? ""}`}
                       </span>
                     )}
                   </div>

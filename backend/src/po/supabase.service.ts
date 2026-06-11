@@ -12,12 +12,10 @@ export type PurchaseOrderRecord = {
   status: string;
   po_number: string | null;
   po_date: string | null;
+  due_date: string | null;
+  expiry_date: string | null;
   vendor_name: string | null;
   customer_name: string | null;
-  currency: string | null;
-  subtotal: number | null;
-  vat_amount: number | null;
-  total_amount: number | null;
   notes: string | null;
   created_at: string;
 };
@@ -31,11 +29,10 @@ export type PoLineItemRecord = {
   id: string;
   po_id: string;
   line_no: number;
+  product_code: string | null;
   description: string;
   quantity: number;
   unit: string | null;
-  unit_price: number;
-  amount: number;
   created_at: string;
 };
 

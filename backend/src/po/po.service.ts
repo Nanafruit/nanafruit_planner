@@ -38,12 +38,10 @@ export class PoService {
         uploaded_by_name: user.name ?? null,
         po_number: data.po_number,
         po_date: data.po_date,
+        due_date: data.due_date,
+        expiry_date: data.expiry_date,
         vendor_name: data.vendor_name,
         customer_name: data.customer_name,
-        currency: data.currency,
-        subtotal: data.subtotal,
-        vat_amount: data.vat_amount,
-        total_amount: data.total_amount,
         notes: data.notes,
       });
     } catch (error) {
@@ -57,11 +55,10 @@ export class PoService {
         data.line_items.map((item, index) => ({
           po_id: record.id,
           line_no: index + 1,
+          product_code: item.product_code,
           description: item.description,
           quantity: item.quantity,
           unit: item.unit,
-          unit_price: item.unit_price,
-          amount: item.amount,
         })),
       );
     } catch (error) {
