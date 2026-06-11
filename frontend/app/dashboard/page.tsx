@@ -1,14 +1,12 @@
-import { auth } from "@/auth";
-import SignInButton from "../components/sign-in-button";
+import Navbar from "../components/navbar";
 
-export default async function DashboardPage() {
-  const session = await auth();
-
+export default function DashboardPage() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-6">
-      <h1 className="text-2xl font-semibold">Dashboard</h1>
-      <p className="text-zinc-600">สวัสดี, {session?.user?.name}</p>
-      <SignInButton />
+    <div className="flex flex-1 flex-col">
+      <Navbar />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+        {/* เนื้อหา dashboard จะเพิ่มภายหลัง */}
+      </main>
     </div>
   );
 }
