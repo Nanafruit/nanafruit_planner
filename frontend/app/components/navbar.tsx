@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { auth, signOut } from "@/auth";
 
 export default async function Navbar() {
@@ -7,9 +8,23 @@ export default async function Navbar() {
   return (
     <header className="border-b border-zinc-200 bg-white">
       <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-        <span className="text-base font-semibold tracking-tight text-zinc-900">
-          Planner
-        </span>
+        <div className="flex items-center gap-6">
+          <span className="text-base font-semibold tracking-tight text-zinc-900">
+            Planner
+          </span>
+          <Link
+            href="/dashboard"
+            className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+          >
+            Dashboard
+          </Link>
+          <Link
+            href="/po/upload"
+            className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+          >
+            อัพโหลด PO
+          </Link>
+        </div>
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-end leading-tight">
             <span className="text-sm font-medium text-zinc-800">

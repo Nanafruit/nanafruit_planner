@@ -1,4 +1,4 @@
-import NextAuth, { type Session } from "next-auth";
+import NextAuth from "next-auth";
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 
 // Augment Session เพื่อให้ TypeScript รู้จัก accessToken และ error
@@ -61,7 +61,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       authorization: {
         params: {
           // offline_access จำเป็นสำหรับขอ refresh_token จาก Microsoft
-          scope: "openid profile email User.Read offline_access",
+          // ขอ scope ของ API ตัวเอง (Expose an API) เพื่อให้ access token
+          // มี audience เป็น backend ของเรา — ห้ามผสม scope ของ Graph
+          // (เช่น User.Read) เพราะ token หนึ่งใบออกให้ได้ทีละ resource เดียว
+          scope: `openid profile email offline_access api://${process.env.AUTH_MICROSOFT_ENTRA_ID_ID}/access_as_user`,
         },
       },
     }),

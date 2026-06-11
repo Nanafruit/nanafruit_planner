@@ -7,30 +7,57 @@ type RequestOptions = Omit<RequestInit, "headers"> & {
   headers?: Record<string, string>;
 };
 
-/**
- * Server-side fetch — ใช้ใน Server Components / Route Handlers / Server Actions
- * แนบ access token ให้อัตโนมัติ
- */
-export async function apiFetch(path: string, options: RequestOptions = {}) {
+async function getAccessToken(): Promise<string> {
   const session = await auth();
 
   if (!session) {
     throw new Error("Unauthenticated");
   }
 
-  if (session.error === "RefreshAccessTokenError") {
+  if (session.error === "RefreshAccessTokenError" || !session.accessToken) {
     // refresh token หมดอายุแล้ว บังคับ login ใหม่
     await signIn("microsoft-entra-id");
-    return;
+    throw new Error("Session expired");
   }
+
+  return session.accessToken;
+}
+
+/**
+ * Server-side fetch — ใช้ใน Server Components / Route Handlers / Server Actions
+ * แนบ access token ให้อัตโนมัติ
+ */
+export async function apiFetch(path: string, options: RequestOptions = {}) {
+  const accessToken = await getAccessToken();
 
   const response = await fetch(`${BACKEND_URL}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${session.accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
       ...options.headers,
     },
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`API error ${response.status}: ${error}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Server-side multipart upload — ส่ง FormData ไป backend
+ * ห้าม set Content-Type เอง เพื่อให้ fetch ใส่ multipart boundary ให้
+ */
+export async function apiUpload(path: string, formData: FormData) {
+  const accessToken = await getAccessToken();
+
+  const response = await fetch(`${BACKEND_URL}${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: formData,
   });
 
   if (!response.ok) {
