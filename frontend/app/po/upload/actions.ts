@@ -5,37 +5,133 @@ import { apiUpload } from "@/app/lib/api-client";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB — ให้ตรงกับ limit ฝั่ง backend
 
+export type PoLineItem = {
+  description: string;
+  quantity: number | null;
+  unit: string | null;
+  unit_price: number | null;
+  amount: number | null;
+};
+
+export type PoExtraction = {
+  po_number: string | null;
+  po_date: string | null;
+  vendor_name: string | null;
+  customer_name: string | null;
+  currency: string | null;
+  subtotal: number | null;
+  vat_amount: number | null;
+  total_amount: number | null;
+  notes: string | null;
+  line_items: PoLineItem[];
+};
+
+export type ExtractPoState =
+  | { status: "idle" }
+  | { status: "extracted"; data: PoExtraction }
+  | { status: "error"; message: string };
+
 export type UploadPoState =
   | { status: "idle" }
   | { status: "success"; fileName: string; url: string }
   | { status: "error"; message: string };
+
+function validateFile(formData: FormData): File | { message: string } {
+  const file = formData.get("file");
+
+  if (!(file instanceof File) || file.size === 0) {
+    return { message: "กรุณาเลือกไฟล์ PDF ก่อน" };
+  }
+  if (file.type !== "application/pdf") {
+    return { message: "รองรับเฉพาะไฟล์ PDF เท่านั้น" };
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    return { message: "ขนาดไฟล์ต้องไม่เกิน 20MB" };
+  }
+  return file;
+}
+
+export async function extractPo(
+  _prevState: ExtractPoState,
+  formData: FormData,
+): Promise<ExtractPoState> {
+  const file = validateFile(formData);
+  if (!(file instanceof File)) {
+    return { status: "error", message: file.message };
+  }
+
+  const upload = new FormData();
+  upload.set("file", file);
+
+  try {
+    const data = (await apiUpload("/po/extract", upload)) as PoExtraction;
+    return { status: "extracted", data };
+  } catch (error) {
+    return {
+      status: "error",
+      message:
+        error instanceof Error
+          ? error.message
+          : "อ่านข้อมูลจากไฟล์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+    };
+  }
+}
 
 interface PurchaseOrderResponse {
   file_name: string;
   sharepoint_url: string;
 }
 
-export async function uploadPo(
+function numberField(formData: FormData, name: string): number | null {
+  const raw = formData.get(name);
+  if (typeof raw !== "string" || raw.trim() === "") return null;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : null;
+}
+
+function textField(formData: FormData, name: string): string | null {
+  const raw = formData.get(name);
+  if (typeof raw !== "string" || raw.trim() === "") return null;
+  return raw.trim();
+}
+
+export async function submitPo(
   _prevState: UploadPoState,
   formData: FormData,
 ): Promise<UploadPoState> {
-  const file = formData.get("file");
+  const file = validateFile(formData);
+  if (!(file instanceof File)) {
+    return { status: "error", message: file.message };
+  }
 
-  if (!(file instanceof File) || file.size === 0) {
-    return { status: "error", message: "กรุณาเลือกไฟล์ PDF ก่อนอัพโหลด" };
+  let lineItems: unknown;
+  try {
+    lineItems = JSON.parse((formData.get("line_items") as string) || "[]");
+  } catch {
+    return { status: "error", message: "ข้อมูลรายการสินค้าไม่ถูกต้อง" };
   }
-  if (file.type !== "application/pdf") {
-    return { status: "error", message: "รองรับเฉพาะไฟล์ PDF เท่านั้น" };
-  }
-  if (file.size > MAX_FILE_SIZE) {
-    return { status: "error", message: "ขนาดไฟล์ต้องไม่เกิน 20MB" };
-  }
+
+  const data = {
+    po_number: textField(formData, "po_number"),
+    po_date: textField(formData, "po_date"),
+    vendor_name: textField(formData, "vendor_name"),
+    customer_name: textField(formData, "customer_name"),
+    currency: textField(formData, "currency"),
+    subtotal: numberField(formData, "subtotal"),
+    vat_amount: numberField(formData, "vat_amount"),
+    total_amount: numberField(formData, "total_amount"),
+    notes: textField(formData, "notes"),
+    line_items: lineItems,
+  };
+
+  const upload = new FormData();
+  upload.set("file", file);
+  upload.set("data", JSON.stringify(data));
 
   try {
-    // apiUpload ตรวจ session ภายในอยู่แล้ว (โยน error ถ้ายังไม่ login)
     const record = (await apiUpload(
       "/po/upload",
-      formData,
+      upload,
     )) as PurchaseOrderResponse;
 
     refresh(); // ให้รายการอัพโหลดล่าสุดบนหน้าอัพเดตทันที
@@ -50,7 +146,7 @@ export async function uploadPo(
       message:
         error instanceof Error
           ? error.message
-          : "อัพโหลดไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+          : "บันทึกข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
     };
   }
 }

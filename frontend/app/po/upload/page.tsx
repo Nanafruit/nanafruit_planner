@@ -9,6 +9,10 @@ interface PurchaseOrder {
   uploaded_by_name: string | null;
   uploaded_by_email: string;
   status: string;
+  po_number: string | null;
+  vendor_name: string | null;
+  total_amount: number | null;
+  currency: string | null;
   created_at: string;
 }
 
@@ -65,6 +69,13 @@ export default async function PoUploadPage() {
                       {order.uploaded_by_name ?? order.uploaded_by_email} —{" "}
                       {new Date(order.created_at).toLocaleString("th-TH")}
                     </span>
+                    {(order.po_number || order.vendor_name) && (
+                      <span className="block text-xs text-zinc-500">
+                        {order.po_number ?? "-"} · {order.vendor_name ?? "-"}
+                        {order.total_amount != null &&
+                          ` · ${order.total_amount.toLocaleString("th-TH")} ${order.currency ?? ""}`}
+                      </span>
+                    )}
                   </div>
                   <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
                     {order.status}
