@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Navbar from "../../../components/navbar";
+import Navbar from "../../components/navbar";
 import { apiFetch } from "@/app/lib/api-client";
 import BomForm from "./bom-form";
 
@@ -50,7 +50,7 @@ export default async function PoBomPage({
       <Navbar />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
         <Link
-          href="/production/bom"
+          href="/bom"
           className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100"
         >
           ← กลับไปหน้าหลัก

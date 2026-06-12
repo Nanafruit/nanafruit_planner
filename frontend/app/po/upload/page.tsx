@@ -29,7 +29,7 @@ export default async function PoUploadPage() {
   const session = await auth();
 
   if (session?.role === "production") {
-    redirect("/production/bom");
+    redirect("/bom");
   }
 
   const orders = await getPurchaseOrders();

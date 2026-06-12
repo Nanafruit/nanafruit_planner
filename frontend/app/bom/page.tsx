@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import Navbar from "../../components/navbar";
+import Navbar from "../components/navbar";
 import { auth } from "@/auth";
 import { apiFetch } from "@/app/lib/api-client";
 
@@ -74,7 +74,7 @@ export default async function ProductionBomPage() {
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <Link
-                      href={`/po/${order.id}/bom`}
+                      href={`/bom/${order.id}`}
                       className="rounded-full border border-zinc-300 px-2.5 py-0.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100"
                     >
                       กรอก BOM
