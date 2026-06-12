@@ -2,10 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { passportJwtSecret } from 'jwks-rsa';
+import { UsersService } from '../users/users.service';
+import type { CurrentUserPayload } from './current-user.decorator';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(private readonly usersService: UsersService) {
     const tenantId = process.env.AZURE_TENANT_ID;
     super({
       secretOrKeyProvider: passportJwtSecret({
@@ -21,11 +23,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: Record<string, unknown>) {
-    return {
-      id: payload.oid as string,
-      email: (payload.preferred_username ?? payload.upn) as string,
-      name: payload.name as string,
-    };
+  async validate(
+    payload: Record<string, unknown>,
+  ): Promise<CurrentUserPayload> {
+    const oid = payload.oid as string;
+    const email = (payload.preferred_username ?? payload.upn) as string;
+    const name = payload.name as string;
+
+    const user = await this.usersService.findOrCreateByOid(oid, email, name);
+
+    return { id: oid, email, name, role: user.role };
   }
 }

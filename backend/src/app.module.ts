@@ -4,11 +4,17 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { PoModule } from './po/po.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   // ConfigModule ต้องมาก่อน เพื่อให้ .env ถูกโหลดเข้า process.env
   // ก่อนที่ provider อื่น (JwtStrategy, SupabaseService) จะถูกสร้าง
-  imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule, PoModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    AuthModule,
+    PoModule,
+    UsersModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

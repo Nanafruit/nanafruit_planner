@@ -1,11 +1,14 @@
 import NextAuth from "next-auth";
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 
-// Augment Session เพื่อให้ TypeScript รู้จัก accessToken และ error
+export type UserRole = "admin" | "staff";
+
+// Augment Session เพื่อให้ TypeScript รู้จัก accessToken, error และ role
 declare module "next-auth" {
   interface Session {
     accessToken?: string;
     error?: "RefreshAccessTokenError";
+    role?: UserRole;
   }
 }
 
@@ -15,6 +18,24 @@ interface AppToken {
   expiresAt?: number;
   refreshToken?: string;
   error?: "RefreshAccessTokenError";
+  role?: UserRole;
+}
+
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:3001";
+
+// ดึง role ปัจจุบันของ user จาก backend (sync/สร้าง user record ในตัว)
+async function fetchRole(accessToken: string): Promise<UserRole> {
+  try {
+    const response = await fetch(`${BACKEND_URL}/users/me`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) return "staff";
+    const data = (await response.json()) as { role?: UserRole };
+    return data.role === "admin" ? "admin" : "staff";
+  } catch {
+    return "staff";
+  }
 }
 
 async function refreshAccessToken(refreshToken: string): Promise<AppToken> {
@@ -73,13 +94,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, account }) {
       const t = token as AppToken;
 
-      // Login ครั้งแรก — เก็บ token ทั้งหมด
+      // Login ครั้งแรก — เก็บ token ทั้งหมด + ดึง role จาก backend
       if (account) {
+        const role = account.access_token
+          ? await fetchRole(account.access_token)
+          : "staff";
         return {
           ...token,
           accessToken: account.access_token,
           expiresAt: account.expires_at,
           refreshToken: account.refresh_token,
+          role,
         };
       }
 
@@ -95,7 +120,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       try {
         const refreshed = await refreshAccessToken(t.refreshToken);
-        return { ...token, ...refreshed, error: undefined };
+        const role = refreshed.accessToken
+          ? await fetchRole(refreshed.accessToken)
+          : t.role;
+        return { ...token, ...refreshed, role, error: undefined };
       } catch {
         return { ...token, error: "RefreshAccessTokenError" as const };
       }
@@ -105,6 +133,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const t = token as AppToken;
       session.accessToken = t.accessToken;
       session.error = t.error;
+      session.role = t.role ?? "staff";
       return session;
     },
   },
