@@ -74,6 +74,7 @@ export class PoService {
       poId: record.id,
       poNumber: record.po_number,
       vendorName: record.vendor_name,
+      customerName: record.customer_name,
       lineItems: data.line_items.map((item) => ({
         description: item.description,
         quantity: item.quantity,
