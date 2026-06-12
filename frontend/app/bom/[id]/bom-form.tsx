@@ -176,8 +176,25 @@ export default function BomForm({
 
   function handleSubmit() {
     setMessage(null);
+
+    const payload = toPayload();
+    const incompleteLines = lines
+      .map((line, i) => ({ line, payload: payload[i] }))
+      .filter(
+        ({ payload }) => payload.materials.length === 0 || payload.packaging.length === 0,
+      )
+      .map(({ line }) => line.lineNo);
+
+    if (incompleteLines.length > 0) {
+      setMessage({
+        type: "error",
+        text: `กรุณากรอกข้อมูลวัตถุดิบและ Packaging อย่างน้อย 1 รายการ สำหรับรายการที่ ${incompleteLines.join(", ")}`,
+      });
+      return;
+    }
+
     startTransition(async () => {
-      const result = await submitBom(poId, toPayload());
+      const result = await submitBom(poId, payload);
       if (result.status !== "idle") {
         setMessage({
           type: result.status === "success" ? "success" : "error",

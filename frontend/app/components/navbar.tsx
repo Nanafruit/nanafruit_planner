@@ -20,7 +20,7 @@ export default async function Navbar() {
           </Link>
           {session?.role !== "production" && (
             <Link
-              href="/po/upload"
+              href="/po"
               className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
             >
               PO

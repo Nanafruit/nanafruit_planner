@@ -40,11 +40,32 @@ export async function apiFetch(path: string, options: RequestOptions = {}) {
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`API error ${response.status}: ${error}`);
+    throw new Error(await formatApiError(response));
   }
 
   return response.json();
+}
+
+/**
+ * แปลง error response จาก backend ให้เป็นข้อความที่อ่านง่าย
+ * ไม่โชว์ raw JSON / zod validation error ดิบๆ ให้ผู้ใช้เห็น
+ */
+async function formatApiError(response: Response): Promise<string> {
+  const text = await response.text();
+
+  try {
+    const body = JSON.parse(text);
+    if (typeof body.message === "string") {
+      const jsonStart = body.message.indexOf("[");
+      const message =
+        jsonStart === -1 ? body.message : body.message.slice(0, jsonStart).trim();
+      return message || `API error ${response.status}`;
+    }
+  } catch {
+    // ไม่ใช่ JSON ปล่อยให้ใช้ text เดิม
+  }
+
+  return `API error ${response.status}: ${text}`;
 }
 
 /**
@@ -61,8 +82,7 @@ export async function apiUpload(path: string, formData: FormData) {
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`API error ${response.status}: ${error}`);
+    throw new Error(await formatApiError(response));
   }
 
   return response.json();
