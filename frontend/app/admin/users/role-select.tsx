@@ -26,6 +26,7 @@ export default function RoleSelect({
       className="rounded-lg border border-zinc-300 px-2 py-1 text-sm disabled:opacity-50"
     >
       <option value="staff">staff</option>
+      <option value="production">production</option>
       <option value="admin">admin</option>
     </select>
   );

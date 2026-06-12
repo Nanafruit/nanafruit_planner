@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 
-export type UserRole = "admin" | "staff";
+export type UserRole = "admin" | "staff" | "production";
 
 // Augment Session เพื่อให้ TypeScript รู้จัก accessToken, error และ role
 declare module "next-auth" {
@@ -32,7 +32,8 @@ async function fetchRole(accessToken: string): Promise<UserRole> {
     });
     if (!response.ok) return "staff";
     const data = (await response.json()) as { role?: UserRole };
-    return data.role === "admin" ? "admin" : "staff";
+    if (data.role === "admin" || data.role === "production") return data.role;
+    return "staff";
   } catch {
     return "staff";
   }

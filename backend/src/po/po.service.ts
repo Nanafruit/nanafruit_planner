@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CurrentUserPayload } from '../auth/current-user.decorator';
 import { OcrService, PoExtraction } from './ocr.service';
 import { PoSubmission } from './po-submission.schema';
+import { PowerAutomateService } from './power-automate.service';
 import { SharePointService } from './sharepoint.service';
 import { PurchaseOrderRecord, SupabaseService } from './supabase.service';
 
@@ -11,6 +12,7 @@ export class PoService {
     private readonly sharePoint: SharePointService,
     private readonly supabase: SupabaseService,
     private readonly ocr: OcrService,
+    private readonly powerAutomate: PowerAutomateService,
   ) {}
 
   extract(file: Express.Multer.File): Promise<PoExtraction> {
@@ -67,6 +69,17 @@ export class PoService {
       await this.sharePoint.deleteFile(uploaded.itemId).catch(() => undefined);
       throw error;
     }
+
+    await this.powerAutomate.notifyProductionTeam({
+      poId: record.id,
+      poNumber: record.po_number,
+      vendorName: record.vendor_name,
+      lineItems: data.line_items.map((item) => ({
+        description: item.description,
+        quantity: item.quantity,
+        unit: item.unit,
+      })),
+    });
 
     return record;
   }
