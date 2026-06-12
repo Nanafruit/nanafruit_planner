@@ -1,4 +1,6 @@
+import Link from "next/link";
 import Navbar from "../../components/navbar";
+import { auth } from "@/auth";
 import { apiFetch } from "@/app/lib/api-client";
 import UploadForm from "./upload-form";
 
@@ -9,6 +11,8 @@ interface PurchaseOrder {
   uploaded_by_name: string | null;
   uploaded_by_email: string;
   status: string;
+  po_number: string | null;
+  vendor_name: string | null;
   created_at: string;
 }
 
@@ -22,23 +26,30 @@ async function getPurchaseOrders(): Promise<PurchaseOrder[] | null> {
 }
 
 export default async function PoUploadPage() {
-  const orders = await getPurchaseOrders();
+  const [orders, session] = await Promise.all([getPurchaseOrders(), auth()]);
+  const canFillBom =
+    session?.role === "admin" || session?.role === "production";
+  const canUpload = session?.role !== "production";
 
   return (
     <div className="flex flex-1 flex-col">
       <Navbar />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
-        <div className="mx-auto max-w-xl">
-          <h1 className="text-lg font-semibold text-zinc-900">
-            อัพโหลดใบ PO
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            ไฟล์จะถูกเก็บใน SharePoint และบันทึกข้อมูลลงระบบเพื่อนำไปสร้าง BOM
-            ต่อไป
-          </p>
-          <div className="mt-6">
-            <UploadForm />
-          </div>
+        <div className="mx-auto max-w-5xl">
+          {canUpload && (
+            <>
+              <h1 className="text-lg font-semibold text-zinc-900">
+                อัพโหลดใบ PO
+              </h1>
+              <p className="mt-1 text-sm text-zinc-500">
+                ไฟล์จะถูกเก็บใน SharePoint และบันทึกข้อมูลลงระบบเพื่อนำไปสร้าง
+                BOM ต่อไป
+              </p>
+              <div className="mt-6">
+                <UploadForm />
+              </div>
+            </>
+          )}
         </div>
 
         {orders && orders.length > 0 && (
@@ -65,10 +76,25 @@ export default async function PoUploadPage() {
                       {order.uploaded_by_name ?? order.uploaded_by_email} —{" "}
                       {new Date(order.created_at).toLocaleString("th-TH")}
                     </span>
+                    {(order.po_number || order.vendor_name) && (
+                      <span className="block text-xs text-zinc-500">
+                        {order.po_number ?? "-"} · {order.vendor_name ?? "-"}
+                      </span>
+                    )}
                   </div>
-                  <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
-                    {order.status}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {canFillBom && (
+                      <Link
+                        href={`/po/${order.id}/bom`}
+                        className="rounded-full border border-zinc-300 px-2.5 py-0.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100"
+                      >
+                        กรอก BOM
+                      </Link>
+                    )}
+                    <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
+                      {order.status}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>

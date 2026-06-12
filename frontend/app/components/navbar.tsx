@@ -18,12 +18,30 @@ export default async function Navbar() {
           >
             Dashboard
           </Link>
-          <Link
-            href="/po/upload"
-            className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
-          >
-            อัพโหลด PO
-          </Link>
+          {session?.role !== "production" && (
+            <Link
+              href="/po/upload"
+              className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+            >
+              อัพโหลด PO
+            </Link>
+          )}
+          {session?.role === "production" && (
+            <Link
+              href="/po/upload"
+              className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+            >
+              BOM Forms
+            </Link>
+          )}
+          {session?.role === "admin" && (
+            <Link
+              href="/admin/users"
+              className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+            >
+              จัดการผู้ใช้
+            </Link>
+          )}
         </div>
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-end leading-tight">

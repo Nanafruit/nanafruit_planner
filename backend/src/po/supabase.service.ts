@@ -10,6 +10,13 @@ export type PurchaseOrderRecord = {
   uploaded_by_email: string;
   uploaded_by_name: string | null;
   status: string;
+  po_number: string | null;
+  po_date: string | null;
+  due_date: string | null;
+  expiry_date: string | null;
+  vendor_name: string | null;
+  customer_name: string | null;
+  notes: string | null;
   created_at: string;
 };
 
@@ -18,6 +25,19 @@ export type NewPurchaseOrder = Omit<
   'id' | 'status' | 'created_at'
 >;
 
+export type PoLineItemRecord = {
+  id: string;
+  po_id: string;
+  line_no: number;
+  product_code: string | null;
+  description: string;
+  quantity: number;
+  unit: string | null;
+  created_at: string;
+};
+
+export type NewPoLineItem = Omit<PoLineItemRecord, 'id' | 'created_at'>;
+
 type Database = {
   public: {
     Tables: {
@@ -25,6 +45,12 @@ type Database = {
         Row: PurchaseOrderRecord;
         Insert: NewPurchaseOrder;
         Update: Partial<NewPurchaseOrder>;
+        Relationships: [];
+      };
+      po_line_items: {
+        Row: PoLineItemRecord;
+        Insert: NewPoLineItem;
+        Update: Partial<NewPoLineItem>;
         Relationships: [];
       };
     };
@@ -63,6 +89,22 @@ export class SupabaseService {
       );
     }
     return data;
+  }
+
+  async insertPoLineItems(items: NewPoLineItem[]): Promise<void> {
+    if (items.length === 0) {
+      return;
+    }
+    const { error } = await this.client.from('po_line_items').insert(items);
+    if (error) {
+      throw new InternalServerErrorException(
+        `Failed to save purchase order line items: ${error.message}`,
+      );
+    }
+  }
+
+  async deletePurchaseOrder(id: string): Promise<void> {
+    await this.client.from('purchase_orders').delete().eq('id', id);
   }
 
   async listPurchaseOrders(): Promise<PurchaseOrderRecord[]> {
