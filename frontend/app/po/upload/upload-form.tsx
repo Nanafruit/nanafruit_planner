@@ -8,6 +8,7 @@ import {
   type PoExtraction,
   type UploadPoState,
 } from "./actions";
+import { toIsoDate } from "@/app/lib/date";
 
 const initialExtractState: ExtractPoState = { status: "idle" };
 const initialSubmitState: UploadPoState = { status: "idle" };
@@ -58,9 +59,9 @@ function fromExtraction(data: PoExtraction): {
   return {
     header: {
       po_number: toInputValue(data.po_number),
-      po_date: toInputValue(data.po_date),
-      due_date: toInputValue(data.due_date),
-      expiry_date: toInputValue(data.expiry_date),
+      po_date: toInputValue(toIsoDate(data.po_date)),
+      due_date: toInputValue(toIsoDate(data.due_date)),
+      expiry_date: toInputValue(toIsoDate(data.expiry_date)),
       vendor_name: toInputValue(data.vendor_name),
       customer_name: toInputValue(data.customer_name),
       notes: toInputValue(data.notes),

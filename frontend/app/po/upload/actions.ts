@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { apiUpload } from "@/app/lib/api-client";
+import { mockPoExtraction } from "./mock-data";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB — ให้ตรงกับ limit ฝั่ง backend
 
@@ -55,6 +56,10 @@ export async function extractPo(
   const file = validateFile(formData);
   if (!(file instanceof File)) {
     return { status: "error", message: file.message };
+  }
+
+  if (process.env.USE_MOCK_PO_EXTRACT === "true") {
+    return { status: "extracted", data: mockPoExtraction };
   }
 
   const upload = new FormData();
