@@ -12,6 +12,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { CurrentUserPayload } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermission } from '../auth/permissions.decorator';
 import { PoSubmissionSchema } from './po-submission.schema';
 import { PoService } from './po.service';
 
@@ -85,6 +87,8 @@ export class PoController {
   }
 
   @Get()
+  @UseGuards(PermissionsGuard)
+  @RequirePermission('po:view')
   list() {
     return this.poService.list();
   }

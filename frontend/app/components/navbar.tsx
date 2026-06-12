@@ -23,15 +23,15 @@ export default async function Navbar() {
               href="/po/upload"
               className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
             >
-              อัพโหลด PO
+              Sales
             </Link>
           )}
-          {session?.role === "production" && (
+          {(session?.role === "admin" || session?.role === "production") && (
             <Link
-              href="/po/upload"
+              href="/production/bom"
               className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
             >
-              BOM Forms
+              Production
             </Link>
           )}
           {session?.role === "admin" && (
